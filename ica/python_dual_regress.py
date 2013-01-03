@@ -1,4 +1,4 @@
-import os
+import os, re
 from glob import glob
 import nibabel as ni
 import numpy as np
@@ -7,7 +7,7 @@ from nipype.interfaces.base import CommandLine
 from nipype.utils.filemanip import split_filename
 """
 infiles are
-<basedir>/B*_warp_rest_3mm_ica.ica/reg_standard/filtered_func_data.nii.gz
+<basedir>/<subid>.ica/reg_standard/filtered_func_data.nii.gz
 """
 
 
