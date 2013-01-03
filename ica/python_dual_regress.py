@@ -35,14 +35,18 @@ def create_common_mask(infiles, outdir):
     return outfile
 
 
-def get_subid(infile):
-    """this is specific to file structure
+def get_subid(instr, pattern='B[0-9]{2}-[0-9]{3}'):
+    """regexp to find pattern in string
+    default pattern = BXX-XXX  X is [0-9]
     """
-    pth,_ = os.path.split(infile)
-    pth2, _ = os.path.split(pth)
-    _, longsub = os.path.split(pth2)
-    subid = longsub.split('_warp_')[0]
+    m = re.search(pattern, instr)
+    try:
+        subid = m.group()
+    except:
+        print pattern, ' not found in ', instr
+        subid = None
     return subid
+
     
 def dual_regressions(infiles, melodicIC, mask,desnorm = 1):              
     """
