@@ -142,40 +142,38 @@ def component_timeseries(infile, spatialmap, mask, outdir, desnorm=1):
     else:
         return stage2_ts, stage2_tsz
     
-def dual_regressions(infiles, template, mask,desnorm = 1):              
+def dual_regression(infiles, template, mask, desnorm = 1):              
     """
-    TODO: keep wrapper, split 3 functions test
-    for file in infiles:
-    subid
+    runs dual regression on subjects registered-to-standard
+    filtered-func data
+        subid
         get spatial map
         get timeseries for maps
         split individual subjects components into separate files
+        returns list of files
         
-    
-    
     """
     startdir = os.getcwd()
     outdir, _ = os.path.split(mask)
     os.chdir(outdir)
-    subd = {}
+    
     melodicpth, melodicnme, melodicext = split_filename(template)
     template = os.path.join(melodicpth, melodicnme)
-    for f in infiles:
-        stage1txt = spatial_map(f, template, mask, outdir)
-        if stage1txt is None:
-            continue
-        stage2_ts, stage2_tsz = componenet_timesereis(f, stage1txt,
-                                                      mask, outdir)
-        if stage2_ts is None:
-            continue
-        subid = get_subid(f)
-        allic = split_components(stage2_ts, subid, outdir)
-        if allic is None:
-            continue
-
-        subd.update({subid: allic})
+    #for f in infiles:
+    stage1txt = spatial_map(infile, template, mask, outdir)
+    if stage1txt is None:
+        continue
+    stage2_ts, stage2_tsz = componenet_timesereis(infile, stage1txt,
+                                                  mask, outdir)
+    if stage2_ts is None:
+        continue
+    subid = get_subid(infile)
+    allic = split_components(stage2_ts, subid, outdir)
+    if allic is None:
+        continue
+    
     os.chdir(startdir)
-    return subd
+    return allic
     
 
 def split_components(file4d, subid, outdir):
@@ -199,7 +197,7 @@ def split_components(file4d, subid, outdir):
 
 def merge_components(subd):
     """ for each component
-    concat subjects into 4D file
+    concat individual subjects into 4D file
     write subject order to file
     Returns
     -------
