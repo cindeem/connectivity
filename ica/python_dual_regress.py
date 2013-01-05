@@ -114,6 +114,12 @@ def component_timeseries(infile, spatialmap, mask, outdir, desnorm=1):
         file of 4D timeseries components
     stage2_tsz : str
         file of z-transfomred 4D timesereis components
+
+    Notes
+    -----
+    fsl_glm -i <file> -d <outdir>/dr_stage1_${subid}.txt
+    -o <outdir>/dr_stage2_$s --out_z=<outdir>/dr_stage2_${subid}_Z
+    --demean -m $OUTPUT/mask <desnorm>;
     """
     
     subid = get_subid(infile)
@@ -143,9 +149,10 @@ def dual_regressions(infiles, template, mask,desnorm = 1):
     subid
         get spatial map
         get timeseries for maps
+        split individual subjects components into separate files
         
-    fsl_glm -i <file> -d <outdir>/dr_stage1_${subid}.txt  -o <outdir>/dr_stage2_$s --out_z=<outdir>/dr_stage2_${subid}_Z --demean -m $OUTPUT/mask <desnorm>;\
-    fslsplit <outdir>/dr_stage2_$s $OUTPUT/dr_stage2_${s}_ic
+    
+    
     """
     startdir = os.getcwd()
     outdir, _ = os.path.split(mask)
@@ -161,21 +168,34 @@ def dual_regressions(infiles, template, mask,desnorm = 1):
                                                       mask, outdir)
         if stage2_ts is None:
             continue
-        
-        outic = os.path.join(outdir, 'dr_stage2_%s_ic'%(subid))
-        cmd = ' '.join(['fslsplit', tmpout2, outic])
-        cout = CommandLine(cmd).run()
-        if not cout.runtime.returncode == 0:
-            print cmd
-            print cout.runtime.stderr
+        subid = get_subid(f)
+        allic = split_components(stage2_ts, subid, outdir)
+        if allic is None:
             continue
-        allic = glob('%s*'%(outic))
-        allic.sort()
+
         subd.update({subid: allic})
     os.chdir(startdir)
     return subd
     
+
+def split_components(file4d, subid, outdir):
+    """ split subjects 4d components into individual files
+    Notes
+    -----
+    fslsplit <outdir>/dr_stage2_$s $OUTPUT/dr_stage2_${s}_ic"""
+    outic = os.path.join(outdir, 'dr_stage2_%s_ic'%(subid))
+    cmd = ' '.join(['fslsplit',
+                    file4d,
+                    outic])
+    cout = CommandLine(cmd).run()
+    if not cout.runtime.returncode == 0:
+        print cmd
+        print cout.runtime.stderr
+        return None
     
+    allic = glob('%s*'%(outic))
+    allic.sort()
+    return allic
 
 def merge_components(subd):
     """ for each component
