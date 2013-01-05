@@ -1,6 +1,6 @@
 import os, sys
 from glob import glob
-sys.path.insert(0, '/home/jagust/cindeem/CODE/dualregression')
+sys.path.insert(0, '/home/jagust/cindeem/CODE/connectivity/ica')
 import python_dual_regression as pydr
 
 if __name__ == '__main__':
@@ -29,11 +29,19 @@ if __name__ == '__main__':
 
     ### RUN DUAL REGRESSION
     #######################
-    subd = pydr.dual_regressions(infiles, melodicIC, mask)
-
+    subd = {}
+    for tmpf in infiles:
+        subid = get_subid(tmpf)
+        allic = pydr.dual_regressions(tmpf, melodicIC, mask)
+        subd.update({subid:allic})
     # concat ics across subjects
     #######################
-    pydr.merge_components(subd)
+    for item in allic: # search for all subjects based on last
+        datadir, ic = os.path.split(item)
+        subid = find_subid(item)
+        globstr = ic.replace(subid, '*')
+        4dfile, subject_order = pydr.merge_components(datadir,
+                                                      globstr = globstr)
 
     """randomise stage3
                     
@@ -43,7 +51,4 @@ if __name__ == '__main__':
         items = [x[i] for x in sorted(subd.values())]
         cmd = sort_maps_randomise(items, mask, perms=500)
 
-    for sub in sorted(subd):
-        st2_ics = subd[sub]
-        cmd = sort_maps_randomise(st2_ics,mask, perms=500)
     """

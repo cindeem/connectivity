@@ -195,26 +195,47 @@ def split_components(file4d, subid, outdir):
     allic.sort()
     return allic
 
-def merge_components(subd):
-    """ for each component
-    concat individual subjects into 4D file
+def find_component_number(instr, pattern = 'ic[0-9]{4}'):
+    m = re.search(pattern, instr)
+    try:
+        return m.group()
+    except:
+        raise IOError('%s not found in %s'%(pattern, instr))
+    
+
+def merge_components(datadir, globstr = 'dr_stage2_*_ic0000.nii.gz'):
+    """
+    concatenate components across subjects
+
     write subject order to file
     Returns
     -------
     4dfiles : list of component 4d files
 
-    subjectorder : string
-        text file holding the order of subjects in 4d component files
+    subjectorder : list
+        list holding the order of subjects in 4d component file
     """
-    keys = sorted(subd)
+    allf = glob(datadir, globstr)
+    allf.sort()
+    component = find_component(allf[0])
+    outdir, _ = os.path.split(allf[0])
+    nsubjects = len(allf)
+    subject_order = [get_subid[x] for x in allf]
+    mergefile = os.path.join(outdir, 'dr_%s_n%03d_4D.nii.gz') 
+    cmd = 'fslmerge -t %s '%(mergefile) + ' '.join(allf)
+    cout = CommandLine(cmd).run()
+    if not cout.runtime.returncode == 0:
+        print cmd
+        print cout.runtime.stderr, cout.runtime.stdout
+        return
 
-
-    return 4dfiles, subjectorder
+    return mergefile, subject_order
     
 
 
 def sort_maps_randomise(stage2_ics, mask, perms=500):
     """
+    TO DO: clean up 
     design = -1  # just ttest
     permutations = 500
     run this on each subject
@@ -255,15 +276,15 @@ if __name__ == '__main__':
     
     #mask = create_common_mask(infiles, outdir)
     mask = basedir + '/ica.gica/dual_regress/mask.nii.gz'
-    subd = dual_regressions(infiles, template, mask)
-
+    subd =  {}
+    for f in infiles:
+        subid = get_subid(f)
+        allic = dual_regressions(f, template, mask)
+        subd.update({subid:allic})
+    # run randomise
     for i in range(len(subd[subd.keys()[0]])):
         if i == 0:
             continue
         items = [x[i] for x in sorted(subd.values())]
         cmd = sort_maps_randomise(items, mask, perms=500)
-    """
-    for sub in sorted(subd):
-        st2_ics = subd[sub]
-        cmd = sort_maps_randomise(st2_ics,mask, perms=500)
-    """
+ 
