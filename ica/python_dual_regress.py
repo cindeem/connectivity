@@ -9,8 +9,19 @@ from nipype.utils.filemanip import split_filename
 infiles are
 <basedir>/<subid>.ica/reg_standard/filtered_func_data.nii.gz
 """
-
-
+def get_fsl_outputtype():
+    
+    ftypes = {'NIFTI': '.nii',
+              'NIFTI_PAIR': '.img',
+              'NIFTI_GZ': '.nii.gz',
+              'NIFTI_PAIR_GZ': '.img.gz'}
+    env = os.environ
+    try:
+        fsl_key = env['FSLOUTPUTTYPE']
+        return ftypes[fsl_key]
+    except:
+        raise IOError('FSLOUTPUTTYPE not found in env')
+    
 def create_common_mask(infiles, outdir):
     """
     for each file:
@@ -126,8 +137,9 @@ def component_timeseries(infile, spatialmap, mask, outdir, desnorm=1):
     # define outfiles
     stage2_ts = os.path.join(outdir, 'dr_stage2_%s'%(subid))
     stage2_tsz = os.path.join(outdir,'dr_stage2_%s_Z'%(subid))
+    ext = get_fsl_outputtype()
     # generate command
-    cmd = ' '.join(['fsl_glm -i %s'%(infilef),
+    cmd = ' '.join(['fsl_glm -i %s'%(infile),
                     '-d %s'%(spatialmap),
                     '-o %s'%(stage2_ts),
                     '--out_z=%s'%(stage2_tsz),
@@ -140,7 +152,7 @@ def component_timeseries(infile, spatialmap, mask, outdir, desnorm=1):
         print cout.runtime.stderr
         return None, None
     else:
-        return stage2_ts, stage2_tsz
+        return stage2_ts + ext, stage2_tsz + ext
     
 def dual_regression(infiles, template, mask, desnorm = 1):              
     """
@@ -163,7 +175,7 @@ def dual_regression(infiles, template, mask, desnorm = 1):
     stage1txt = spatial_map(infile, template, mask, outdir)
     if stage1txt is None:
         return None
-    stage2_ts, stage2_tsz = componenet_timesereis(infile, stage1txt,
+    stage2_ts, stage2_tsz = componenet_timeseries(infile, stage1txt,
                                                   mask, outdir)
     if stage2_ts is None:
         return None

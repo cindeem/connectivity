@@ -2,9 +2,17 @@
 # vi: set ft=python sts=4 ts=4 sw=4 et:
 import os, sys, re
 from os.path import (abspath, join, dirname, exists)
+import nibabel as ni
 from unittest import TestCase, skipIf, skipUnless
-from numpy.testing import (assert_raises, assert_equal)
+from numpy.testing import (assert_raises, assert_equal, assert_almost_equal)
+from numpy import (loadtxt, array)
 from .. import python_dual_regress as pydr
+
+
+def get_data_dir():
+    """ return directory holding data for tests"""
+    return join(os.path.dirname(__file__), 'data')
+
 
 def test_get_subid():
     # basic
@@ -19,7 +27,7 @@ def test_get_subid():
     # test multi
     sid = 'B09-220'
     instr = join('/some/junk', sid, 'more/junk', sid)
-    subid = get_subid(instr)
+    subid = pydr.get_subid(instr)
     assert_equal(subid, sid)
 
 def test_find_component_number():
@@ -29,3 +37,32 @@ def test_find_component_number():
     pattern = 'ic[0-9]{2}'
     comp = pydr.find_component_number(instr, pattern=pattern)
     assert_equal(comp, 'ic00')
+
+
+def test_spatial_map():
+    datadir = get_data_dir()
+    infile = join(datadir, 'test_B00-000_timeseries.nii.gz')
+    template = join(datadir, 'test_template.nii.gz')
+    mask = join(datadir, 'test_mask.nii.gz')
+    outdir = datadir
+    outf = pydr.spatial_map(infile, template, mask, outdir)
+    dat = loadtxt(outf)
+    example = loadtxt(join(datadir, 'example_B00-000.txt'))
+    
+    assert_equal(True, (dat == example).all())
+
+
+def test_component_timeseries():
+    datadir = get_data_dir()
+    infile = join(datadir, 'test_B00-000_timeseries.nii.gz')
+    template = join(datadir, 'test_template.nii.gz')
+    mask = join(datadir, 'test_mask.nii.gz')
+    outdir = datadir
+    spatial_map = join(datadir,  'example_B00-000.txt')
+    tmap, zmap = pydr.component_timeseries(infile, spatial_map, mask, outdir)
+    realt = join(datadir, 'example_B00-000.nii.gz')
+    realz = join(datadir, 'example_B00-000_Z.nii.gz')
+
+    assert_equal(ni.load(tmap).get_data(), ni.load(realt).get_data())
+    assert_equal(ni.load(zmap).get_data(), ni.load(realz).get_data())
+    
