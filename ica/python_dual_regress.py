@@ -162,15 +162,15 @@ def dual_regression(infiles, template, mask, desnorm = 1):
     #for f in infiles:
     stage1txt = spatial_map(infile, template, mask, outdir)
     if stage1txt is None:
-        continue
+        return None
     stage2_ts, stage2_tsz = componenet_timesereis(infile, stage1txt,
                                                   mask, outdir)
     if stage2_ts is None:
-        continue
+        return None
     subid = get_subid(infile)
     allic = split_components(stage2_ts, subid, outdir)
     if allic is None:
-        continue
+        return None
     
     os.chdir(startdir)
     return allic

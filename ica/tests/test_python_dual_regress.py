@@ -21,3 +21,11 @@ def test_get_subid():
     instr = join('/some/junk', sid, 'more/junk', sid)
     subid = get_subid(instr)
     assert_equal(subid, sid)
+
+def test_find_component_number():
+    instr = '/path/to/dr_stage2_B09-230_ic0040.nii.gz'
+    comp = pydr.find_component_number(instr)
+    assert_equal(comp, 'ic0040')
+    pattern = 'ic[0-9]{2}'
+    comp = pydr.find_component_number(instr, pattern=pattern)
+    assert_equal(comp, 'ic00')
