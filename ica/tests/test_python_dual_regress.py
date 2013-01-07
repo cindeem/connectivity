@@ -2,6 +2,7 @@
 # vi: set ft=python sts=4 ts=4 sw=4 et:
 import os, sys, re
 from os.path import (abspath, join, dirname, exists)
+from tempfile import mkdtemp
 import nibabel as ni
 from unittest import TestCase, skipIf, skipUnless
 from numpy.testing import (assert_raises, assert_equal, assert_almost_equal)
@@ -13,6 +14,12 @@ def get_data_dir():
     """ return directory holding data for tests"""
     return join(os.path.dirname(__file__), 'data')
 
+def tmp_outdir():
+    """ returns a temporary directory to store tests outputs"""
+    return mkdtemp()
+
+def clean_tmpdir(tmpdir):
+    os.system('rm -rf %s'%tmpdir)
 
 def test_get_subid():
     # basic
@@ -44,20 +51,20 @@ def test_spatial_map():
     infile = join(datadir, 'test_B00-000_timeseries.nii.gz')
     template = join(datadir, 'test_template.nii.gz')
     mask = join(datadir, 'test_mask.nii.gz')
-    outdir = datadir
+    outdir = tmp_outdir()
     outf = pydr.spatial_map(infile, template, mask, outdir)
     dat = loadtxt(outf)
     example = loadtxt(join(datadir, 'example_B00-000.txt'))
     
     assert_equal(True, (dat == example).all())
-
+    clean_tmpdir(outdir)
 
 def test_component_timeseries():
     datadir = get_data_dir()
     infile = join(datadir, 'test_B00-000_timeseries.nii.gz')
     template = join(datadir, 'test_template.nii.gz')
     mask = join(datadir, 'test_mask.nii.gz')
-    outdir = datadir
+    outdir = tmp_outdir()
     spatial_map = join(datadir,  'example_B00-000.txt')
     tmap, zmap = pydr.component_timeseries(infile, spatial_map, mask, outdir)
     realt = join(datadir, 'example_B00-000.nii.gz')
@@ -66,3 +73,13 @@ def test_component_timeseries():
     assert_equal(ni.load(tmap).get_data(), ni.load(realt).get_data())
     assert_equal(ni.load(zmap).get_data(), ni.load(realz).get_data())
     
+    clean_tmpdir(outdir)
+
+def test_create_common_mask():
+    datadir = get_data_dir()
+    outdir = tmp_outdir()
+    infile = join(datadir, 'test_B00-000_timeseries.nii.gz')
+    realmask = join(datadir, 'example_mask.nii.gz')
+    newmask = pydr.create_common_mask([infile,], outdir)
+    assert_equal(ni.load(realmask).get_data(), ni.load(newmask).get_data())
+    clean_tmpdir(outdir)
