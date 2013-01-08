@@ -30,19 +30,23 @@ if __name__ == '__main__':
     ### RUN DUAL REGRESSION
     #######################
     subd = {}
-    for tmpf in infiles:
+    for tmpf in infiles: #subject-wise
         subid = get_subid(tmpf)
         allic = pydr.dual_regressions(tmpf, melodicIC, mask)
         subd.update({subid:allic})
     # concat ics across subjects
     #######################
-    for item in allic: # search for all subjects based on last
+    for cn, item in enumerate(allic): # search for all subjects based on last
         datadir, ic = os.path.split(item)
         subid = find_subid(item)
         globstr = ic.replace(subid, '*')
         4dfile, subject_order = pydr.merge_components(datadir,
                                                       globstr = globstr)
-
+        outfile = os.path.join(outdir, 'subject_order_%02d'%cn)
+        with open(outfile, 'w+') as fid: 
+            fid.write('\n'.join(subject_order))
+        
+        
     """randomise stage3
                     
     for i in range(len(subd[subd.keys()[0]])):

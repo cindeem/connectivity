@@ -175,4 +175,4 @@ def calc_grecious_connectome_gof(connectome_img, grecious_dict):
 
 if __name__ == '__main__':
 
-  
+  pass

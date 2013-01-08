@@ -154,7 +154,7 @@ def component_timeseries(infile, spatialmap, mask, outdir, desnorm=1):
     else:
         return stage2_ts + ext, stage2_tsz + ext
     
-def dual_regression(infiles, template, mask, desnorm = 1):              
+def dual_regression(infile, template, mask, desnorm = 1):              
     """
     runs dual regression on subjects registered-to-standard
     filtered-func data
