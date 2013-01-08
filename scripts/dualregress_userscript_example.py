@@ -32,7 +32,14 @@ if __name__ == '__main__':
     subd = {}
     for tmpf in infiles: #subject-wise
         subid = get_subid(tmpf)
-        allic = pydr.dual_regression(tmpf, melodicIC, mask)
+        txtf = pydr.template_timeseries_sub(tmpf, template, mask, outdir)
+        ## If you want to add movement params to stage2 of model
+        ## vxt = [movementfile] andd change from None below
+        ## globstr find movmenet relative to filtered_func (template space)
+        
+        allic = pydr.sub_spatial_map(tmpf, txtf, mask, outdir,
+                                     desnorm=1, vxt=None)
+        
         subd.update({subid:allic})
     # concat ics across subjects
     #######################

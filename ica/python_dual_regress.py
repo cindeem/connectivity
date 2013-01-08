@@ -106,7 +106,7 @@ def template_timeseries_sub(infile, template, mask, outdir):
     else:
         return outfile
 
-def sub_spatial_map(infile, spatialmap, mask, outdir, desnorm=1):
+def sub_spatial_map(infile, spatialmap, mask, outdir, desnorm=1, vxt=None):
     """ glm on ts data using stage1 txt file as model
     Parameters
     ----------
@@ -148,6 +148,8 @@ def sub_spatial_map(infile, spatialmap, mask, outdir, desnorm=1):
                     '--demean',
                     '-m %s'%(mask),
                     '%d'%desnorm])
+    if vxt is not None:
+        cmd = cmd + '--vxt ' + ' '.join(vxt) 
     cout = CommandLine(cmd).run()
     if not cout.runtime.returncode == 0:
         print cmd
