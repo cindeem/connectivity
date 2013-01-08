@@ -46,27 +46,29 @@ def test_find_component_number():
     assert_equal(comp, 'ic00')
 
 
-def test_spatial_map():
+def test_template_timeseries_sub():
     datadir = get_data_dir()
     infile = join(datadir, 'test_B00-000_timeseries.nii.gz')
     template = join(datadir, 'test_template.nii.gz')
     mask = join(datadir, 'test_mask.nii.gz')
     outdir = tmp_outdir()
-    outf = pydr.spatial_map(infile, template, mask, outdir)
+    outf = pydr.template_timeseries_sub(infile, template, mask, outdir)
     dat = loadtxt(outf)
     example = loadtxt(join(datadir, 'example_B00-000.txt'))
     
     assert_equal(True, (dat == example).all())
     clean_tmpdir(outdir)
 
-def test_component_timeseries():
+def test_sub_spatial_map():
     datadir = get_data_dir()
     infile = join(datadir, 'test_B00-000_timeseries.nii.gz')
     template = join(datadir, 'test_template.nii.gz')
     mask = join(datadir, 'test_mask.nii.gz')
     outdir = tmp_outdir()
-    spatial_map = join(datadir,  'example_B00-000.txt')
-    tmap, zmap = pydr.component_timeseries(infile, spatial_map, mask, outdir)
+    template_timeseries_sub = join(datadir,  'example_B00-000.txt')
+    tmap, zmap = pydr.sub_spatial_map(infile,
+                                      template_timeseries_sub,
+                                      mask, outdir)
     realt = join(datadir, 'example_B00-000.nii.gz')
     realz = join(datadir, 'example_B00-000_Z.nii.gz')
 
