@@ -32,7 +32,7 @@ if __name__ == '__main__':
     subd = {}
     for tmpf in infiles: #subject-wise
         subid = get_subid(tmpf)
-        allic = pydr.dual_regressions(tmpf, melodicIC, mask)
+        allic = pydr.dual_regression(tmpf, melodicIC, mask)
         subd.update({subid:allic})
     # concat ics across subjects
     #######################

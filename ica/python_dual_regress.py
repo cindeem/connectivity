@@ -59,10 +59,11 @@ def get_subid(instr, pattern='B[0-9]{2}-[0-9]{3}'):
     return subid
 
 
-def spatial_map(infile, template, mask, outdir):
+def template_timeseries_sub(infile, template, mask, outdir):
     """
-    Run subject data against template to find spatial maps
-    using fsl fsl_glm
+    Run subject data against template to find timesearies specific
+    to each template component using fsl fsl_glm
+    
 
     Parameters
     ----------
@@ -82,7 +83,8 @@ def spatial_map(infile, template, mask, outdir):
 
     outfile : string
         path to dr_stage1_<subid>.txt
-
+        containing columns of timeseries -
+        one timeseries per group-ICA component
     Notes
     -----
     fsl_glm -i <file> -d <melodicIC> -o <outdir>/dr_stage1_${subid}.txt
@@ -104,7 +106,7 @@ def spatial_map(infile, template, mask, outdir):
     else:
         return outfile
 
-def component_timeseries(infile, spatialmap, mask, outdir, desnorm=1):
+def sub_spatial_map(infile, spatialmap, mask, outdir, desnorm=1):
     """ glm on ts data using stage1 txt file as model
     Parameters
     ----------
@@ -172,11 +174,11 @@ def dual_regression(infile, template, mask, desnorm = 1):
     melodicpth, melodicnme, melodicext = split_filename(template)
     template = os.path.join(melodicpth, melodicnme)
     #for f in infiles:
-    stage1txt = spatial_map(infile, template, mask, outdir)
+    stage1txt = template_timeseries_sub(infile, template, mask, outdir)
     if stage1txt is None:
         return None
-    stage2_ts, stage2_tsz = componenet_timeseries(infile, stage1txt,
-                                                  mask, outdir)
+    stage2_ts, stage2_tsz = sub_spatial_map(infile, stage1txt,
+                                            mask, outdir)
     if stage2_ts is None:
         return None
     subid = get_subid(infile)
