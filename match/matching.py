@@ -101,8 +101,8 @@ def calc_gof(input, template, mask):
     Parameters
     ----------
     input : array
-        array with a z-transfomred network you want to match
-    template : array
+        array unthresholded z-transfomred network you want to match
+    template : binary array
         array holding the network you want to match
     mask : array
         array holding a mask to restrict voxels for comparison

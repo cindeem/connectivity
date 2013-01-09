@@ -6,7 +6,7 @@ from tempfile import mkdtemp
 import nibabel as ni
 from unittest import TestCase, skipIf, skipUnless
 from numpy.testing import (assert_raises, assert_equal, assert_almost_equal)
-from numpy import (loadtxt, array)
+from numpy import (loadtxt, array, concatenate)
 from .. import python_dual_regress as pydr
 
 
@@ -45,6 +45,25 @@ def test_find_component_number():
     comp = pydr.find_component_number(instr, pattern=pattern)
     assert_equal(comp, 'ic00')
 
+def test_concat_regressors():
+    datadir = get_data_dir()
+    a = join(datadir, 'example_B00-000.txt')
+    b = join(datadir, 'example_movement.txt')
+    outdir = tmp_outdir()
+    outf = pydr.concat_regressors(a, b, outdir = outdir)
+    adat = loadtxt(a)
+    bdat = loadtxt(b)
+    cdat = loadtxt(outf)
+    assert_almost_equal(concatenate((adat,bdat), axis=1),cdat)
+    # test txt file reading
+    mask = join(datadir, 'mask.nii.gz')
+    assert_raises(IOError, pydr.concat_regressors,a,mask)
+    # test row mismatch
+    jnk = array([1,2])
+    jnkf = join(outdir, 'jnk_regressor')
+    jnk.tofile(jnkf, sep=' ', format = '%2.8f')
+    assert_raises(IndexError, pydr.concat_regressors, a, jnkf)
+    clean_tmpdir(outdir)
 
 def test_template_timeseries_sub():
     datadir = get_data_dir()
@@ -65,9 +84,9 @@ def test_sub_spatial_map():
     template = join(datadir, 'test_template.nii.gz')
     mask = join(datadir, 'test_mask.nii.gz')
     outdir = tmp_outdir()
-    template_timeseries_sub = join(datadir,  'example_B00-000.txt')
+    sub_template_ts = join(datadir,  'example_B00-000.txt')
     tmap, zmap = pydr.sub_spatial_map(infile,
-                                      template_timeseries_sub,
+                                      sub_template_ts,
                                       mask, outdir)
     realt = join(datadir, 'example_B00-000.nii.gz')
     realz = join(datadir, 'example_B00-000_Z.nii.gz')

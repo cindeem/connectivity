@@ -106,6 +106,35 @@ def template_timeseries_sub(infile, template, mask, outdir):
     else:
         return outfile
 
+def concat_regressors(a,b, outdir = None):
+    """ concatenate regressors in a and regressors in b into a new file
+    file saved in outdir, (or adir if outdir is None
+    raises error if row in a not equal rows in b
+    """
+    try:
+        adat = np.loadtxt(a)
+        bdat = np.loadtxt(b)
+    except:
+        raise IOError('Make sure %s and %s are simple text files'%(a,b))
+    if not adat.shape[0] == bdat.shape[0]:
+        # different number of rows
+        raise IndexError('shape mismatch: a = %d, b = %d'%(adat.shape[0],
+                                                           bdat.shape[0]))
+    apth, anme = os.path.split(a)
+    bpth, bnme = os.path.split(b)
+    if outdir is None:
+        outdir = apth # default to directory of a
+    outf = os.path.join(outdir,
+                        '_and_'.join([x.split('.')[0] for x in [anme,bnme]]))
+
+    with open(outf, 'w+') as fid:
+        cdat = np.concatenate((adat, bdat), axis=1)
+        for row in cdat:
+            new = ' '.join(['%2.8f'%x for x in row])
+            fid.write(new + '\n')
+    return outf
+        
+
 def sub_spatial_map(infile, spatialmap, mask, outdir, desnorm=1, vxt=None):
     """ glm on ts data using stage1 txt file as model
     Parameters
