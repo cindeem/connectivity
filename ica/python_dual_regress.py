@@ -265,9 +265,9 @@ def merge_components(datadir, globstr = 'dr_stage2_*_ic0000.nii.gz'):
     subjectorder : list
         list holding the order of subjects in 4d component file
     """
-    allf = glob(datadir, globstr)
+    allf = glob(os.path.join(datadir, globstr))
     allf.sort()
-    component = find_component(allf[0])
+    component = find_component_number(allf[0])
     outdir, _ = os.path.split(allf[0])
     nsubjects = len(allf)
     subject_order = [get_subid[x] for x in allf]
