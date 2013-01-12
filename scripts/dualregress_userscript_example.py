@@ -2,6 +2,7 @@ import os, sys
 from glob import glob
 sys.path.insert(0, '/home/jagust/jelman/rsfmri_ica/code/connectivity/ica')
 import python_dual_regress as pydr
+import datetime
 
 if __name__ == '__main__':
 
@@ -24,6 +25,7 @@ if __name__ == '__main__':
     # location for 4D template components (eg melodic_ICA, laird_4D)
     template = os.path.join(basedir, 'OldICA_IC25_ecat.gica',
                              'groupmelodic.ica','melodic_IC.nii.gz')
+    num_ics = 25 #Number of ICs in 4d file. Components 0 thru <num_ics> will be merged.
 
     # look for subjects already registered filtered func ica data
     globstr = os.path.join(basedir, #data directory
@@ -36,16 +38,20 @@ if __name__ == '__main__':
     infiles.sort()
 
     # get mask from groupica
-    #######################
+    ############################
     mask = os.path.join(basedir,
                         'OldICA_IC25_ecat.gica',
                         'mask.nii.gz')
 
     ### RUN DUAL REGRESSION
-    #######################
+    ############################
+    startdir = os.getcwd()
+    os.chdir(outdir)
+    
     subd = {}
     for tmpf in infiles: #subject-wise
         subid = pydr.get_subid(tmpf)
+        ###Run dr_stage1
         txtf = pydr.template_timeseries_sub(tmpf, template, mask, outdir)
         ## If you want to add movement params & spike regressors to stage2 of model
         ## mvtfile = [confound file] and change from None below
@@ -53,23 +59,29 @@ if __name__ == '__main__':
                             subid,
                             'func',
                             'confound_regressors.txt') #Name of confound file
-        
-        allic = pydr.sub_spatial_map(tmpf, txtf, mask, outdir,
+        ###Run dr_stage2
+        stage2_ts, stage2_tsz = pydr.sub_spatial_map(tmpf, txtf, mask, outdir,
                                      desnorm=1, mvt=mvtfile)
         
-        subd.update({subid:allic})
-    # concat ics across subjects
-    #######################
-    for cn, item in enumerate(allic): # search for all subjects based on last
-        datadir, ic = os.path.split(item)
-        subid = get_subid(item)
+        subd.update({subid:stage2_ts})
+
+        ###Split subject 4d file into separate 3d files for each component
+        allic = pydr.split_components(stage2_ts, subid, outdir)
+
+
+    ###Concat ics across subjects
+    ###############################################
+    for cn, item in enumerate(allic[:num_ics]): #Search through ics using last subject's output
+        datadir, ic = os.path.split(item)       #Only merge ics 0 thru <num_ics>
+        subid = pydr.get_subid(item)
         globstr = ic.replace(subid, '*')
-        4dfile, subject_order = pydr.merge_components(datadir,
+        mergefile, subject_order = pydr.merge_components(datadir,
                                                       globstr = globstr)
-        outfile = os.path.join(outdir, 'subject_order_%02d'%cn)
+        outfile = os.path.join(outdir, 'subject_order_ic%04d'%cn)
         with open(outfile, 'w+') as fid: 
-            fid.write('\n'.join(subject_order))
-        
+            fid.write('\n'.join(subject_order)) #Write out subject order for each ic
+
+    os.chdir(startdir)
         
     """randomise stage3
                     

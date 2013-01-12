@@ -260,9 +260,9 @@ def merge_components(datadir, globstr = 'dr_stage2_*_ic0000.nii.gz'):
     write subject order to file
     Returns
     -------
-    4dfiles : list of component 4d files
+    mergefile : list of component 4d files
 
-    subjectorder : list
+    subject_order : list
         list holding the order of subjects in 4d component file
     """
     allf = glob(os.path.join(datadir, globstr))
@@ -270,8 +270,8 @@ def merge_components(datadir, globstr = 'dr_stage2_*_ic0000.nii.gz'):
     component = find_component_number(allf[0])
     outdir, _ = os.path.split(allf[0])
     nsubjects = len(allf)
-    subject_order = [get_subid[x] for x in allf]
-    mergefile = os.path.join(outdir, 'dr_%s_n%03d_4D.nii.gz') 
+    subject_order = [get_subid(x) for x in allf]
+    mergefile = os.path.join(outdir, 'dr_stage2_%s_4D.nii.gz'%component) 
     cmd = 'fslmerge -t %s '%(mergefile) + ' '.join(allf)
     cout = CommandLine(cmd).run()
     if not cout.runtime.returncode == 0:
