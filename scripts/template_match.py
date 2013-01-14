@@ -1,3 +1,4 @@
+#!/usr/bin/env python
 import sys
 import nibabel as nib
 sys.path.insert(0, '/home/jagust/jelman/rsfmri_ica/code/connectivity/match')
@@ -21,22 +22,32 @@ def LoadTemplate(mapfile):
 if __name__ == '__main__':
 
 
-    #Set filenames
+    #Set filenames and paths
     ##############################################
     datapath='/home/jagust/jelman/rsfmri_ica/data/'
     #Group ICA output
-    icafile = os.path.join(datapath,'Test',
+    icafile = os.path.join(datapath,
+                            'OldICA_IC25_ecat.gica/groupmelodic.ica',
                             'melodic_IC.nii.gz') 
     #Template to match components to. 4D file.
-    tempfile = os.path.join(datapath,'Test',
+    tempfile = os.path.join('/home/jagust/jelman/templates',
+                            'templates-Laird2011/maps',
                             'Laird2011_4d_MNI_3mm.nii.gz') 
-    #Mask to restrict voxels which are matched
-    #Set to MNI brain mask if no other mask is 
-    maskfile = os.path.join(datapath,'Test',
-                            'MNI152_T1_3mm_brain_mask.nii.gz') 
     #File mapping 4D template volume number to description
-    mapfile = os.path.join(datapath,'Test',
+    mapfile = os.path.join('/home/jagust/jelman/templates',
+                            'templates-Laird2011',
                             'template_mapping.txt')
+    #Mask to restrict voxels which are matched (MNI example below)
+    #maskfile = os.path.join(os.environ['FSLDIR'],
+    #                        'data/standard', 
+    #                        'MNI152_T1_2mm_brain_mask.nii.gz')
+    maskfile = os.path.join('/home/jagust/jelman/templates',
+                            'MNI152_T1_3mm_brain_mask.nii.gz')
+
+
+    #Set output directory of matching metrics
+    outdir = os.path.join(datapath,
+                            'OldICA_IC25_ecat.gica')
     #Descriptive list of metrics to be run.
     #Used when generating columns of output
     metrics = ['gof', 'eta', 'pear_r', 'pear_p']
@@ -96,5 +107,6 @@ if __name__ == '__main__':
             matchframe.ix[tempname][str(cmpnt),'pear_r'] = pear_r
             matchframe.ix[tempname][str(cmpnt),'pear_p'] = pear_p
 
-    matchframe.to_csv('MatchingMetrics.csv', header=True, index=True)   #Save to file
+    outfile = os.path.join(outdir, 'MatchingMetrics.csv')
+    matchframe.to_csv(outfile, header=True, index=True)   #Save to file
 
