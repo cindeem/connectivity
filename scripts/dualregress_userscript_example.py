@@ -1,4 +1,3 @@
-#!/usr/bin/env python
 import os, sys
 from glob import glob
 sys.path.insert(0, '/home/jagust/jelman/rsfmri_ica/code/connectivity/ica')

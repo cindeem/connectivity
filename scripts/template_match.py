@@ -1,4 +1,3 @@
-#!/usr/bin/env python
 import sys
 import nibabel as nib
 sys.path.insert(0, '/home/jagust/jelman/rsfmri_ica/code/connectivity/match')
@@ -27,12 +26,12 @@ if __name__ == '__main__':
     datapath='/home/jagust/jelman/rsfmri_ica/data/'
     #Group ICA output
     icafile = os.path.join(datapath,
-                            'OldICA_IC25_ecat.gica/groupmelodic.ica',
+                            'OldICA_IC70_ecat_8mm.gica/groupmelodic.ica',
                             'melodic_IC.nii.gz') 
     #Template to match components to. 4D file.
     tempfile = os.path.join('/home/jagust/jelman/templates',
                             'templates-Laird2011/maps',
-                            'Laird2011_4d_MNI_3mm.nii.gz') 
+                            'Laird2011_4d_MNI_3mm_bin.nii.gz') 
     #File mapping 4D template volume number to description
     mapfile = os.path.join('/home/jagust/jelman/templates',
                             'templates-Laird2011',
@@ -47,7 +46,8 @@ if __name__ == '__main__':
 
     #Set output directory of matching metrics
     outdir = os.path.join(datapath,
-                            'OldICA_IC25_ecat.gica')
+                            'OldICA_IC70_ecat_8mm.gica')
+    outfile = 'MatchingMetrics_Laird2011.csv'
     #Descriptive list of metrics to be run.
     #Used when generating columns of output
     metrics = ['gof', 'eta', 'pear_r', 'pear_p']
@@ -83,11 +83,11 @@ if __name__ == '__main__':
     for i in range(t):
         for j in metrics:
             level_tuples.append((str(i),j))
-    column_index = pandas.MultiIndex.from_tuples(level_tuples, 
+    row_index = pandas.MultiIndex.from_tuples(level_tuples, 
                                 names=['Component', 'Metric']) #Level1 and Level2 names
 
     #Create empty dataframe to hold metric scores
-    matchframe = pandas.DataFrame(index=template_map.values(), columns=column_index)
+    matchframe = pandas.DataFrame(index=row_index, columns=template_map.values())
 
     #Calculate matching metrics of all components with template networks  
     for cmpnt in range(t):  #Loop over all components in 4d ICA file
@@ -102,11 +102,11 @@ if __name__ == '__main__':
             (eta, (pear_r, pear_p)) = matching.calc_eta(icavol, #Calc Cohen's eta
                                                     tempvol, 
                                                     getr=True)
-            matchframe.ix[tempname][str(cmpnt),'gof'] = gof
-            matchframe.ix[tempname][str(cmpnt),'eta'] = eta
-            matchframe.ix[tempname][str(cmpnt),'pear_r'] = pear_r
-            matchframe.ix[tempname][str(cmpnt),'pear_p'] = pear_p
+            matchframe.ix[str(cmpnt),'gof'][tempname] = gof
+            matchframe.ix[str(cmpnt),'eta'][tempname] = eta
+            matchframe.ix[str(cmpnt),'pear_r'][tempname] = pear_r
+            matchframe.ix[str(cmpnt),'pear_p'][tempname] = pear_p
 
-    outfile = os.path.join(outdir, 'MatchingMetrics.csv')
-    matchframe.to_csv(outfile, header=True, index=True)   #Save to file
+    saveout = os.path.join(outdir, outfile)
+    matchframe.to_csv(saveout, header=True, index=True)   #Save to file
 
