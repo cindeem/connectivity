@@ -1,4 +1,3 @@
-#!/usr/bin/env python
 import sys, os
 sys.path.append("/home/jagust/cindeem/CODE/PetProcessing/misc")
 import rapid_art
@@ -60,7 +59,7 @@ if __name__ == '__main__':
         #Declare run-level paths and files
         ######################################################
         funcdir = os.path.join(subjdir,'func')
-        icafolder = subj + '_4d_OldICA.ica'
+        icafolder = ''.join([subj,'_4d_OldICA_IC0_ecat_6mm_125.ica'])
         infiles = [os.path.join(funcdir,icafolder, 'filtered_func_data.nii.gz')]
         param_file = os.path.join(funcdir,icafolder,'mc', 'prefiltered_func_data_mcf.par')
         param_source = 'FSL'
