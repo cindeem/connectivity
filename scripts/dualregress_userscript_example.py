@@ -10,8 +10,8 @@ if __name__ == '__main__':
     #########################################################
     basedir = '/home/jagust/jelman/rsfmri_ica/data'
 
-    # output directory
-    outdir = os.path.join(basedir, 'OldICA_IC25_ecat.gica', 'dual_regress')
+    ### output directory
+    outdir = os.path.join(basedir, 'OldICA_IC30_ecat_6mm_125.gica', 'dual_regress')
     if os.path.isdir(outdir)==False:
         os.mkdir(outdir)      
     else:
@@ -23,7 +23,7 @@ if __name__ == '__main__':
         os.mkdir(outdir)
         print outdir, 'exists, moving to ', newdir
 
-    # Specify input data filelist, otherwise searches basedir for data
+    ### Specify input data filelist, otherwise searches basedir for data
     if len(sys.argv) ==2:   #If specified, load file as list of infiles
         args = sys.argv[1]
         print 'Using data specified in ', args
@@ -41,18 +41,20 @@ if __name__ == '__main__':
         infiles = glob(globstr)
         infiles.sort()
         
-    # location for 4D template components (eg melodic_ICA, laird_4D)
-    template = os.path.join(basedir, 'OldICA_IC25_ecat.gica',
+    ### location for 4D template components (eg melodic_ICA, laird_4D)
+    template = os.path.join(basedir, 'OldICA_IC30_ecat_6mm_125.gica',
                              'groupmelodic.ica','melodic_IC.nii.gz')
-    num_ics = 25 #Number of ICs in 4d file. Components 0 thru <num_ics> will be merged.
+
+    num_ics = 30 #Number of ICs in 4d file. Components 0 thru <num_ics> will be merged.
 
 
 
-    # get mask from groupica
-    ############################
+    ### get mask from groupica
     mask = os.path.join(basedir,
-                        'OldICA_IC25_ecat.gica',
+                        'OldICA_IC30_ecat_6mm_125.gica',
                         'mask.nii.gz')
+
+
 
     ### RUN DUAL REGRESSION
     ############################
@@ -64,13 +66,16 @@ if __name__ == '__main__':
         subid = pydr.get_subid(tmpf)
         ###Run dr_stage1
         txtf = pydr.template_timeseries_sub(tmpf, template, mask, outdir)
+
+        ###Run dr_stage2
         ## If you want to add movement params & spike regressors to stage2 of model
-        ## mvtfile = [confound file] and change from None below
+        ## mvtfile = [confound file] 
+        ## Must change input of mvt parameter from None in dr_stage2 below
         mvtfile = os.path.join(basedir,
                             subid,
-                            'func',
-                            'confound_regressors.txt') #Name of confound file
-        ###Run dr_stage2
+                            'func/data_QA',
+                            'prefiltered_func_data_mcf.par') #Name of confound file
+
         stage2_ts, stage2_tsz = pydr.sub_spatial_map(tmpf, txtf, mask, outdir,
                                      desnorm=1, mvt=mvtfile)
         

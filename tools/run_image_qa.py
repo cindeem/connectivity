@@ -4,32 +4,18 @@ import rapid_art
 import numpy as np
 
 def CreateRegressors(outdir, art_output, num_vols):
-    exists = False
     qa_file = os.path.join(outdir,'data_QA',art_output)
     outliers = np.loadtxt(qa_file, dtype=int)
     outliers = np.atleast_1d(outliers)
-    if len(outliers) > 1:
-        exists = True
-        outlier_array = np.zeros((num_vols,len(outliers)),dtype=float)
-        for i in range(len(outliers)):
-            outlier_array[outliers[i],i]=1
-        outfile = os.path.join(outdir, 'data_QA', 'outliers_for_fsl.txt')
-        outlier_array.tofile(outfile)
-        np.savetxt(outfile, outlier_array, fmt='%i', delimiter=u'\t')
-        print 'Saved %s'%outfile
-        return exists, outlier_array
-    elif len(outliers) == 1:
-        exists = True
-        outlier_array = np.zeros((num_vols,len(outliers)),dtype=float)
-        outlier_array[outliers[0],0] = 1
-        outfile = os.path.join(outdir, 'data_QA', 'outliers_for_fsl.txt')
-        outlier_array.tofile(outfile)
-        np.savetxt(outfile, outlier_array, fmt='%i', delimiter=u'\t')
-        print 'Saved %s'%outfile
-        return exists, outlier_array
-    else:
-        outlier_array = np.array([])
-        return exists, outlier_array
+    outlier_array = np.zeros(num_vols,dtype=float)
+    for i in range(len(outliers)):
+        outlier_array[outliers[i]]=1
+    outfile = os.path.join(outdir, 'data_QA', 'outliers_for_fsl.txt')
+    outlier_array.tofile(outfile)
+    np.savetxt(outfile, outlier_array, fmt='%i', delimiter=u'\t')
+    print 'Saved %s'%outfile
+    return outlier_array
+
 
 
 def CombineRegressors(mc_params, outlier_array):
@@ -59,7 +45,7 @@ if __name__ == '__main__':
         #Declare run-level paths and files
         ######################################################
         funcdir = os.path.join(subjdir,'func')
-        icafolder = ''.join([subj,'_4d_OldICA_IC0_ecat_6mm_125.ica'])
+        icafolder = ''.join([subj,'_4d_OldICA_IC0_ecat_5mm_100.ica'])
         infiles = [os.path.join(funcdir,icafolder, 'filtered_func_data.nii.gz')]
         param_file = os.path.join(funcdir,icafolder,'mc', 'prefiltered_func_data_mcf.par')
         param_source = 'FSL'
@@ -74,11 +60,6 @@ if __name__ == '__main__':
         #Save combined confound regressors to run directory.
         mc_params = np.loadtxt(param_file)
         num_vols = len(mc_params)
-        exists, outlier_array = CreateRegressors(outdir, art_output, num_vols)
-        if exists:
-            confound_regressors = CombineRegressors(mc_params, outlier_array) 
-        elif not exists:
-            outfile = os.path.join(funcdir, 'confound_regressors.txt') 
-            np.savetxt(outfile, mc_params, delimiter=u'\t')
-            print 'Saved %s'%outfile
-            
+        outlier_array = CreateRegressors(outdir, art_output, num_vols)
+        confound_regressors = CombineRegressors(mc_params, outlier_array) 
+
