@@ -19,9 +19,14 @@ def CreateRegressors(outdir, art_output, num_vols):
 
 
 def CombineRegressors(mc_params, outlier_array):
-    combined = np.hstack((mc_params, outlier_array))
-    outfile = os.path.join(funcdir, 'confound_regressors.txt')
-    np.savetxt(outfile, combined, delimiter=u'\t')
+    if outlier_array.ndim > 1:
+        combined = np.hstack((mc_params, outlier_array))
+        outfile = os.path.join(funcdir, 'confound_regressors.txt')
+        np.savetxt(outfile, combined, delimiter=u'\t')
+    elif outlier_array.ndim == 1:
+        combined = np.hstack((mc_params, np.atleast_2d(outlier_array).T))
+        outfile = os.path.join(funcdir, 'confound_regressors.txt')
+        np.savetxt(outfile, combined, delimiter=u'\t')
     print 'Saved %s'%outfile
     return combined
 
@@ -45,7 +50,7 @@ if __name__ == '__main__':
         #Declare run-level paths and files
         ######################################################
         funcdir = os.path.join(subjdir,'func')
-        icafolder = ''.join([subj,'_4d_OldICA_IC0_ecat_5mm_100.ica'])
+        icafolder = ''.join([subj,'_4d_Preproc.feat'])
         infiles = [os.path.join(funcdir,icafolder, 'filtered_func_data.nii.gz')]
         param_file = os.path.join(funcdir,icafolder,'mc', 'prefiltered_func_data_mcf.par')
         param_source = 'FSL'
