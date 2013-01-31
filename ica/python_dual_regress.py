@@ -175,6 +175,11 @@ def sub_spatial_map(infile, design, mask, outdir, desnorm=1, mvt=None):
     # add movment regressor to design if necessary
     if not mvt is None: 
         design = concat_regressors(design, mvt)
+    # set des_norm argument, defaults to including flag
+    if desnorm==1:
+        desnorm_flag="--des_norm"
+    elif desnorm==0:
+        desnorm_flag=""
     # generate command
     cmd = ' '.join(['fsl_glm -i %s'%(infile),
                     '-d %s'%(design),
@@ -182,7 +187,7 @@ def sub_spatial_map(infile, design, mask, outdir, desnorm=1, mvt=None):
                     '--out_z=%s'%(stage2_tsz),
                     '--demean',
                     '-m %s'%(mask),
-                    '%d'%desnorm])
+                    '%s'%(desnorm_flag)])
 
     cout = CommandLine(cmd).run()
     if not cout.runtime.returncode == 0:
