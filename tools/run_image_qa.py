@@ -18,14 +18,14 @@ def CreateRegressors(outdir, art_output, num_vols):
 
 
 
-def CombineRegressors(mc_params, outlier_array):
+def CombineRegressors(mc_params, outlier_array, confound_outname):
     if outlier_array.ndim > 1:
         combined = np.hstack((mc_params, outlier_array))
-        outfile = os.path.join(funcdir, 'confound_regressors.txt')
+        outfile = os.path.join(funcdir, confound_outname)
         np.savetxt(outfile, combined, delimiter=u'\t')
     elif outlier_array.ndim == 1:
         combined = np.hstack((mc_params, np.atleast_2d(outlier_array).T))
-        outfile = os.path.join(funcdir, 'confound_regressors.txt')
+        outfile = os.path.join(funcdir, confound_outname)
         np.savetxt(outfile, combined, delimiter=u'\t')
     print 'Saved %s'%outfile
     return combined
@@ -56,6 +56,7 @@ if __name__ == '__main__':
         param_source = 'FSL'
         thresh = 3
         outdir = funcdir
+        confound_outname = 'confound_regressors_8mm.txt'
         ######################################################
         #Run artdetect and create QA directory
         rapid_art.main(infiles, param_file, param_source, thresh, outdir)
@@ -66,5 +67,5 @@ if __name__ == '__main__':
         mc_params = np.loadtxt(param_file)
         num_vols = len(mc_params)
         outlier_array = CreateRegressors(outdir, art_output, num_vols)
-        confound_regressors = CombineRegressors(mc_params, outlier_array) 
+        confound_regressors = CombineRegressors(mc_params, outlier_array, confound_outname) 
 
