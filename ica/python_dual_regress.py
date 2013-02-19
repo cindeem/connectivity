@@ -135,7 +135,7 @@ def concat_regressors(a,b, outdir = None):
     return outf
         
 
-def sub_spatial_map(infile, design, mask, outdir, desnorm=1, mvt=None):
+def sub_spatial_map(infile, design, mask, outdir, desnorm=True, mvt=None):
     """ glm on ts data using stage1 txt file as model
     Parameters
     ----------
@@ -147,7 +147,7 @@ def sub_spatial_map(infile, design, mask, outdir, desnorm=1, mvt=None):
         mask to restrict glm voxel data
     outdir : str
         directory to hold output files
-    desnorm : int  (0, 1, default = 1)
+    desnorm : bool  (True, False, default = True)
         switch on normalisation of the design matrix
         columns to unit std. deviation
     mvt : file
@@ -175,20 +175,16 @@ def sub_spatial_map(infile, design, mask, outdir, desnorm=1, mvt=None):
     # add movment regressor to design if necessary
     if not mvt is None: 
         design = concat_regressors(design, mvt)
-    # set des_norm argument, defaults to including flag
-    if desnorm==1:
-        desnorm_flag="--des_norm"
-    elif desnorm==0:
-        desnorm_flag=""
     # generate command
     cmd = ' '.join(['fsl_glm -i %s'%(infile),
                     '-d %s'%(design),
                     '-o %s'%(stage2_ts),
                     '--out_z=%s'%(stage2_tsz),
                     '--demean',
-                    '-m %s'%(mask),
-                    '%s'%(desnorm_flag)])
-
+                    '-m %s'%(mask)])
+    # Append des_norm flag to command if desnorm=True (defaults is True).
+    if desnorm:
+        cmd = ' '.join([cmd, '--des_norm'])
     cout = CommandLine(cmd).run()
     if not cout.runtime.returncode == 0:
         print cmd
