@@ -5,6 +5,33 @@ import matching
 import pandas
 import os
 
+"""
+Wrapper script to generate template matching metrics between ICA components and
+a given set of network templates. 
+
+Edit inputs
+----------
+datapath : str
+    path to project directory
+icafile : str
+    4D image file of ICA componenets (e.g. melodic_IC.nii.gz)
+tempfile : str
+    4D image file of network templates to match 
+mapfile : str
+    text file mapping network names to volumes in tempfile
+maskfile : str
+    3D image file to restrict which voxels are included in matching
+outdir : str
+    path to output results
+outfile : str
+    name of csv output listing metrics
+
+Output
+----------
+CSV file listing matching metrics between each component and every network template.
+
+"""
+
 
 def LoadTemplate(mapfile):
     """
@@ -26,28 +53,28 @@ if __name__ == '__main__':
     datapath='/home/jagust/jelman/rsfmri_ica/data/'
     #Group ICA output
     icafile = os.path.join(datapath,
-                            'OldICA_IC70_ecat_8mm.gica/groupmelodic.ica',
+                            'OldICA_IC0_ecat_2mm_6fwhm_125.gica/groupmelodic.ica',
                             'melodic_IC.nii.gz') 
     #Template to match components to. 4D file.
     tempfile = os.path.join('/home/jagust/jelman/templates',
-                            'templates-Laird2011/maps',
-                            'Laird2011_4d_MNI_3mm_bin.nii.gz') 
+                            'templates-Greicius-cerebctx2012',
+                            'Grecius_2012_4d_2mm.nii.gz') 
     #File mapping 4D template volume number to description
     mapfile = os.path.join('/home/jagust/jelman/templates',
-                            'templates-Laird2011',
+                            'templates-Greicius-cerebctx2012',
                             'template_mapping.txt')
     #Mask to restrict voxels which are matched (MNI example below)
     #maskfile = os.path.join(os.environ['FSLDIR'],
     #                        'data/standard', 
     #                        'MNI152_T1_2mm_brain_mask.nii.gz')
     maskfile = os.path.join('/home/jagust/jelman/templates',
-                            'MNI152_T1_3mm_brain_mask.nii.gz')
+                            'MNI152_T1_2mm_brain_mask.nii.gz')
 
 
     #Set output directory of matching metrics
     outdir = os.path.join(datapath,
-                            'OldICA_IC70_ecat_8mm.gica')
-    outfile = 'MatchingMetrics_Laird2011.csv'
+                            'OldICA_IC0_ecat_2mm_6fwhm_125.gica')
+    outfile = 'MatchingMetrics_Greicius2012.csv'
     #Descriptive list of metrics to be run.
     #Used when generating columns of output
     metrics = ['gof', 'eta', 'pear_r', 'pear_p']
