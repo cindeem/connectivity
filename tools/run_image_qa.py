@@ -29,13 +29,22 @@ outdir = str
 confound_outname = str
     name of confound regressor text file
 
-Outputs: <outdir>/<confound_outname>
+Outputs: 
+------------------
+File output: <outdir>/<confound_outname>
     text file containing confound regressors for use in FSL or SPM model
+
+Notes
+-------------------
+If no motion or intensity outliers exist, will save out only motion 
+parameters. This means number of confound regressors are potentially 
+different across subjects, verify that this will not cause problems for 
+further processing when using confound regressor file.
 
 """
 
 
-def CreateRegressors(outdir, art_output, num_vols):
+def CreateRegressors(funcdir, art_output, num_vols):
     """ takes list of outlier volumes output by rapid_art.py
     converts to array of same length as functional volume for use
     in FSL or SPM model
@@ -52,25 +61,35 @@ def CreateRegressors(outdir, art_output, num_vols):
 
     Returns
     ----------
+    exists : bool
+        indicates whether outliers exist or if only mc parameters should
+        be used as confounds
     outlier_array : numpy array
         array with value 1 for each outlier vol to be regressed out
 
     """
-    qa_file = os.path.join(outdir,'data_QA',art_output)
+    exists = False
+    qa_file = os.path.join(funcdir,'data_QA',art_output)
     outliers = np.loadtxt(qa_file, dtype=int)
     outliers = np.atleast_1d(outliers)
-    outlier_array = np.zeros(num_vols,dtype=float)
-    for i in range(len(outliers)):
-        outlier_array[outliers[i]]=1
-    outfile = os.path.join(outdir, 'data_QA', 'outliers_for_fsl.txt')
-    outlier_array.tofile(outfile)
-    np.savetxt(outfile, outlier_array, fmt='%i', delimiter=u'\t')
-    print 'Saved %s'%outfile
-    return outlier_array
+    if len(outliers) >= 1:
+        exists = True
+        outlier_array = np.zeros(num_vols,dtype=float)
+        for i in range(len(outliers)):
+            outlier_array[outliers[i]]=1
+        outfile = os.path.join(funcdir, 'data_QA', 'outliers_for_fsl.txt')
+        outlier_array.tofile(outfile)
+        np.savetxt(outfile, outlier_array, fmt='%i', delimiter=u'\t')
+        print 'Saved %s'%outfile
+        return exists, outlier_array
+    elif len(outliers)==0:
+        outlier_array = np.array([])
+        print 'No outliers, only mc parameters will be used'
+        return exists, outlier_array
 
 
 
-def CombineRegressors(mc_params, outlier_array, confound_outname):
+def CombineRegressors(mc_params, outlier_array, outdir, confound_outname):
     """ combines array of motion parameters and spike regressor
     to be used as confound file in SPM or FSL model
 
@@ -92,11 +111,11 @@ def CombineRegressors(mc_params, outlier_array, confound_outname):
     """
     if outlier_array.ndim > 1:
         combined = np.hstack((mc_params, outlier_array))
-        outfile = os.path.join(funcdir, confound_outname)
+        outfile = os.path.join(outdir, confound_outname)
         np.savetxt(outfile, combined, delimiter=u'\t')
     elif outlier_array.ndim == 1:
         combined = np.hstack((mc_params, np.atleast_2d(outlier_array).T))
-        outfile = os.path.join(funcdir, confound_outname)
+        outfile = os.path.join(outdir, confound_outname)
         np.savetxt(outfile, combined, delimiter=u'\t')
     print 'Saved %s'%outfile
     return combined
@@ -121,13 +140,13 @@ if __name__ == '__main__':
         #Declare run-level paths and files
         ######################################################
         funcdir = os.path.join(subjdir,'func')
-        icafolder = ''.join([subj,'_4d_OldICA_IC0_ecat_7mm_125.ica'])
+        icafolder = ''.join([subj,'_4d_OldICA_IC0_ecat_2mm_6fwhm_125.ica'])
         infiles = [os.path.join(funcdir,icafolder, 'filtered_func_data.nii.gz')]
         param_file = os.path.join(funcdir,icafolder,'mc', 'prefiltered_func_data_mcf.par')
         param_source = 'FSL'
         thresh = 3
         outdir = funcdir
-        confound_outname = 'confound_regressors_7mm.txt'
+        confound_outname = 'confound_regressors_6mm.txt'
         ######################################################
         #Run artdetect and create QA directory
         rapid_art.main(infiles, param_file, param_source, thresh, outdir)
@@ -137,6 +156,13 @@ if __name__ == '__main__':
         #Save combined confound regressors to run directory.
         mc_params = np.loadtxt(param_file)
         num_vols = len(mc_params)
-        outlier_array = CreateRegressors(outdir, art_output, num_vols)
-        confound_regressors = CombineRegressors(mc_params, outlier_array, confound_outname) 
+        exists, outlier_array = CreateRegressors(funcdir, art_output, num_vols)
+        if exists:
+            confound_regressors = CombineRegressors(mc_params, 
+                                                    outlier_array, 
+                                                    outdir, confound_outname) 
+        elif not exists:
+            outfile = os.path.join(outdir, confound_outname)
+            np.savetxt(outfile, mc_params, delimiter=u'\t')
+            print 'Saved %s'%outfile
 
