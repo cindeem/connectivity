@@ -135,7 +135,7 @@ def concat_regressors(a,b, outdir = None):
     return outf
         
 
-def sub_spatial_map(infile, design, mask, outdir, desnorm=1, mvt=None):
+def sub_spatial_map(infile, design, mask, outdir, desnorm=True, mvt=None):
     """ glm on ts data using stage1 txt file as model
     Parameters
     ----------
@@ -147,7 +147,7 @@ def sub_spatial_map(infile, design, mask, outdir, desnorm=1, mvt=None):
         mask to restrict glm voxel data
     outdir : str
         directory to hold output files
-    desnorm : int  (0, 1, default = 1)
+    desnorm : bool  (True, False, default = True)
         switch on normalisation of the design matrix
         columns to unit std. deviation
     mvt : file
@@ -181,9 +181,10 @@ def sub_spatial_map(infile, design, mask, outdir, desnorm=1, mvt=None):
                     '-o %s'%(stage2_ts),
                     '--out_z=%s'%(stage2_tsz),
                     '--demean',
-                    '-m %s'%(mask),
-                    '%d'%desnorm])
-
+                    '-m %s'%(mask)])
+    # Append des_norm flag to command if desnorm=True (defaults is True).
+    if desnorm:
+        cmd = ' '.join([cmd, '--des_norm'])
     cout = CommandLine(cmd).run()
     if not cout.runtime.returncode == 0:
         print cmd
@@ -260,18 +261,18 @@ def merge_components(datadir, globstr = 'dr_stage2_*_ic0000.nii.gz'):
     write subject order to file
     Returns
     -------
-    4dfiles : list of component 4d files
+    mergefile : list of component 4d files
 
-    subjectorder : list
+    subject_order : list
         list holding the order of subjects in 4d component file
     """
-    allf = glob(datadir, globstr)
+    allf = glob(os.path.join(datadir, globstr))
     allf.sort()
-    component = find_component(allf[0])
+    component = find_component_number(allf[0])
     outdir, _ = os.path.split(allf[0])
     nsubjects = len(allf)
-    subject_order = [get_subid[x] for x in allf]
-    mergefile = os.path.join(outdir, 'dr_%s_n%03d_4D.nii.gz') 
+    subject_order = [get_subid(x) for x in allf]
+    mergefile = os.path.join(outdir, 'dr_stage2_%s_4D.nii.gz'%component) 
     cmd = 'fslmerge -t %s '%(mergefile) + ' '.join(allf)
     cout = CommandLine(cmd).run()
     if not cout.runtime.returncode == 0:
