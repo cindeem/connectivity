@@ -5,6 +5,7 @@
 
 # Editors
 *.*~
+.*swp
 
 # Packages
 *.egg
