@@ -92,6 +92,21 @@ def calc_eta(a, b, getr = False):
         return eta
 
 
+def dice_coefficient(regiona, regionb):
+    """ Uses dices coefficient to calculate overlap of two regions
+    Parameters
+    ----------
+    regiona : array
+    regionb : array
+    """
+    if not regiona.shape == regionb.shape:
+        return None
+    a = regiona.flatten()
+    b = regionb.flatten()
+    numerator = 2 * (a*b).sum()
+    denominator = a.sum() + b.sum()
+    return numerator / float(denominator)
+
 
 def calc_gof(input, template, mask):
     """
