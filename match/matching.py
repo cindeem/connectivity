@@ -76,9 +76,7 @@ def calc_eta(a, b, getr = False):
     if not a.shape == b.shape:
         raise IOError("shape mismatch a(%d) , b(%d)"%(a.shape[0],
                                                       b.shape[0]))
-    ab = np.empty((2,a.shape[0]))
-    ab[0,:] = a
-    ab[1,:] = b
+    ab = np.vstack((a,b))
     M = ab.mean()
     mi = ab.mean(0)
     SSW = (a-mi)**2 + (b-mi)**2

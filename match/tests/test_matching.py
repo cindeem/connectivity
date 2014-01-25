@@ -27,5 +27,6 @@ def tmp_outdir():
 def clean_tmpdir(tmpdir):
     os.system('rm -rf %s'%tmpdir)
 
-
+def test_calc_eta():
+    
 
